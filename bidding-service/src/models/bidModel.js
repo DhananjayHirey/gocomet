@@ -24,7 +24,13 @@ const Bid = {
     return rows[0];
   },
   getHistory: async (auction_id) => {
-    const query = 'SELECT * FROM bids WHERE auction_id = $1 ORDER BY created_at DESC';
+    const query = `
+      SELECT b.*, u.username as supplier_name 
+      FROM bids b 
+      LEFT JOIN users u ON b.supplier_id = u.id 
+      WHERE b.auction_id = $1 
+      ORDER BY b.created_at DESC
+    `;
     const { rows } = await pool.query(query, [auction_id]);
     return rows;
   }

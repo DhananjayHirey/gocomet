@@ -19,6 +19,7 @@ const AuctionDetails = ({ user, auction, socket, notifications, setNotifications
       try {
         const res = await axios.get(`${ BIDDING_URL }/${ liveAuction.id }`);
         setBidLog(res.data.history);
+        console.log(res.data.history);
         setLiveAuction(prev => ({ ...prev, rankings: res.data.rankings }));
       } catch (err) {
         console.error('Failed to fetch history:', err);
@@ -28,8 +29,10 @@ const AuctionDetails = ({ user, auction, socket, notifications, setNotifications
 
     if (!socket) return;
     const handleUpdate = (data) => {
+      console.log(data)
       if (data.auction_id == liveAuction.id) {
         setBidLog(prev => [data, ...prev].slice(0, 100));
+        console.log(bidLog)
         setLiveAuction(prev => ({ ...prev, bid_close_time: data.bid_close_time, rankings: data.rankings }));
         setNotifications(prev => [`New quote — $${ data.price }`, ...prev].slice(0, 20));
       }
@@ -55,7 +58,7 @@ const AuctionDetails = ({ user, auction, socket, notifications, setNotifications
     e.preventDefault();
     setSubmitState('loading');
     try {
-      const token = localStorage.getItem('rfq_token');
+      const token = sessionStorage.getItem('rfq_token');
       await axios.post(`${ BIDDING_URL }`, { auction_id: liveAuction.id, price: parseFloat(bidPrice) }, { headers: { Authorization: `Bearer ${ token }` } });
       setBidPrice('');
       setSubmitState('success');
@@ -136,12 +139,14 @@ const AuctionDetails = ({ user, auction, socket, notifications, setNotifications
               <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-3)', fontWeight: 600 }}>UNIQUE BIDDERS</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12 }}>
-              {liveAuction.rankings?.length > 0 ? liveAuction.rankings.map((supplierId, i) => (
+              {liveAuction.rankings?.length > 0 ? liveAuction.rankings.map((supplierId, i) => {
+                const supplierName = bidLog.find(b => String(b.supplier_id) === String(supplierId))?.supplier_name || `Supplier #${supplierId}`;
+                return (
                 <div key={supplierId} style={{ background: i === 0 ? 'var(--green-bg)' : 'var(--ink-3)', border: `1px solid ${ i === 0 ? 'rgba(34,211,160,0.3)' : 'var(--border)' }`, borderRadius: 12, padding: '12px', textAlign: 'center' }}>
                   <div style={{ fontSize: 10, fontWeight: 700, color: i === 0 ? 'var(--green)' : 'var(--text-3)', marginBottom: 4 }}>RANK {i + 1}</div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>Supplier #{supplierId}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{supplierName}</div>
                 </div>
-              )) : <div style={{ gridColumn: '1/-1', color: 'var(--text-3)', fontSize: 13, textAlign: 'center', padding: '10px' }}>No active bidders</div>}
+              )}) : <div style={{ gridColumn: '1/-1', color: 'var(--text-3)', fontSize: 13, textAlign: 'center', padding: '10px' }}>No active bidders</div>}
             </div>
           </div>
 
@@ -154,14 +159,14 @@ const AuctionDetails = ({ user, auction, socket, notifications, setNotifications
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <AnimatePresence initial={false}>
                 {bidLog.map((bid, i) => (
-                  <motion.div key={`${ bid.supplier_id }-${ i }`} initial={{ opacity: 0, x: -16, height: 0 }} animate={{ opacity: 1, x: 0, height: 'auto' }}
+                  <motion.div key={bid.timestamp} initial={{ opacity: 0, x: -16, height: 0 }} animate={{ opacity: 1, x: 0, height: 'auto' }}
                     style={{ background: i === 0 ? 'rgba(123,97,255,0.06)' : 'var(--ink-3)', border: `1px solid ${ i === 0 ? 'rgba(123,97,255,0.2)' : 'var(--border)' }`, borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={{ width: 34, height: 34, borderRadius: 10, background: i === 0 ? 'rgba(123,97,255,0.15)' : 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {i === 0 ? <Award size={15} color="var(--accent-2)" /> : <User size={15} color="var(--text-3)" />}
                       </div>
                       <div>
-                        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>Supplier #{bid.supplier_id}</div>
+                        <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{bid.supplier_name || `Supplier #${bid.supplier_id}`}</div>
                         <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{i === 0 ? 'Latest quote' : 'Earlier quote'}</div>
                       </div>
                     </div>

@@ -9,8 +9,8 @@ export const useAuth = () => {
   const [view, setView] = useState('login');
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('rfq_user');
-    const token = localStorage.getItem('rfq_token');
+    const savedUser = sessionStorage.getItem('rfq_user');
+    const token = sessionStorage.getItem('rfq_token');
     if (savedUser && token) {
       setUser(JSON.parse(savedUser));
       setView('dashboard');
@@ -22,8 +22,8 @@ export const useAuth = () => {
     setError(null);
     try {
       const res = await axios.post(`${AUTH_URL}/login`, { username, password });
-      localStorage.setItem('rfq_token', res.data.token);
-      localStorage.setItem('rfq_user', JSON.stringify(res.data.user));
+      sessionStorage.setItem('rfq_token', res.data.token);
+      sessionStorage.setItem('rfq_user', JSON.stringify(res.data.user));
       setUser(res.data.user);
       setView('dashboard');
       return res.data.user;
@@ -53,8 +53,8 @@ export const useAuth = () => {
   };
 
   const logout = () => {
-    localStorage.removeItem('rfq_token');
-    localStorage.removeItem('rfq_user');
+    sessionStorage.removeItem('rfq_token');
+    sessionStorage.removeItem('rfq_user');
     setUser(null);
     setView('login');
   };

@@ -1,0 +1,7 @@
+[
+  "{\"auction_id\":1,\"supplier_id\":3,\"price\":100,\"timestamp\":\"2026-03-18T10:27:25.936Z\"}",
+  "{\"auction_id\":1,\"supplier_id\":3,\"price\":120,\"timestamp\":\"2026-03-18T10:26:12.026Z\"}",
+  "{\"auction_id\":1,\"supplier_id\":3,\"price\":150,\"timestamp\":\"2026-03-18T10:24:38.714Z\"}",
+  "{\"auction_id\":1,\"supplier_id\":3,\"price\":180,\"timestamp\":\"2026-03-18T10:24:10.392Z\"}",
+  "{\"auction_id\":1,\"supplier_id\":3,\"price\":200,\"timestamp\":\"2026-03-18T10:23:56.956Z\"}"
+]

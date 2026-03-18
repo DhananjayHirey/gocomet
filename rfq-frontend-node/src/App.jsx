@@ -52,7 +52,7 @@ const App = () => {
   const handleCreateAuction = async (newAuction) => {
     setActionLoading(true);
     try {
-      const token = localStorage.getItem('rfq_token');
+      const token = sessionStorage.getItem('rfq_token');
       const auctionToCreate = {
         ...newAuction,
         bid_start_time: new Date(newAuction.bid_start_time).toISOString(),
