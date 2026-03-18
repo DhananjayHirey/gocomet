@@ -1,0 +1,76 @@
+services:
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: auction_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_DATABASE=auction_db
+      - JWT_SECRET=jwt_secret
+    depends_on:
+      - postgres
+
+  auction-service:
+    build: ./auction-service
+    ports:
+      - "3002:3002"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_DATABASE=auction_db
+      - JWT_SECRET=jwt_secret
+    depends_on:
+      - postgres
+
+  bidding-service:
+    build: ./bidding-service
+    ports:
+      - "3003:3003"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=password
+      - DB_DATABASE=auction_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=jwt_secret
+    depends_on:
+      - postgres
+      - redis
+
+  gateway-service:
+    build: ./gateway-service
+    container_name: gocomet-gateway-service
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - AUCTION_SERVICE_URL=http://auction-service:3002
+      - BIDDING_SERVICE_URL=http://bidding-service:3003
+    depends_on:
+      - auth-service
+      - auction-service
+      - bidding-service
