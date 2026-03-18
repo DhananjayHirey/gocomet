@@ -50,9 +50,11 @@ graph TD
 ```
 
 ### Overview
+
 This is a microservices-based auction system built with Node.js, featuring real-time bidding capabilities using WebSockets and Kafka for messaging. The system includes authentication, auction management, and bidding services, all orchestrated through an API gateway.
 
 ### Services
+
 - **Auth Service**: Handles user authentication and authorization
 - **Auction Service**: Manages auction creation and lifecycle
 - **Bidding Service**: Processes bids in real-time with caching and messaging
@@ -60,7 +62,52 @@ This is a microservices-based auction system built with Node.js, featuring real-
 - **Frontend**: React application for user interaction
 
 ### Infrastructure
+
 - PostgreSQL for data persistence
 - Redis for caching auction metadata and bids
 - Kafka for event-driven communication
 - Docker Compose for container orchestration
+
+## Database Schema
+
+```mermaid
+erDiagram
+    users ||--o{ bids : places
+    auctions ||--o{ bids : receives
+    auctions ||--o{ logs : generates
+
+    users {
+        int id PK
+        text username UK
+        text password
+        text role
+    }
+
+    auctions {
+        int id PK
+        text name
+        timestamptz bid_start_time
+        timestamptz bid_close_time
+        timestamptz forced_close_time
+        int trigger_window_minutes
+        int extension_duration_minutes
+        text trigger_type
+        text status
+    }
+
+    bids {
+        int id PK
+        int auction_id FK
+        int supplier_id FK
+        numeric price
+        timestamp created_at
+    }
+
+    logs {
+        int id PK
+        int auction_id
+        text event_type
+        text message
+        timestamp created_at
+    }
+```
