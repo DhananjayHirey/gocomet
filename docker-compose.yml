@@ -56,6 +56,9 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - JWT_SECRET=jwt_secret
+      - KAFKA_BOOTSTRAP_SERVERS=host.docker.internal:9092
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - postgres
       - redis
@@ -70,6 +73,10 @@ services:
       - AUTH_SERVICE_URL=http://auth-service:3001
       - AUCTION_SERVICE_URL=http://auction-service:3002
       - BIDDING_SERVICE_URL=http://bidding-service:3003
+      - JWT_SECRET=jwt_secret
+      - KAFKA_BOOTSTRAP_SERVERS=host.docker.internal:9092
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - auth-service
       - auction-service

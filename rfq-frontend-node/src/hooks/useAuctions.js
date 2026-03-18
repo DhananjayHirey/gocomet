@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { AUCTION_URL } from '../constants/urls';
+import { CloudCog } from 'lucide-react';
 
 export const useAuctions = (view) => {
   const [auctions, setAuctions] = useState([]);
@@ -11,6 +12,7 @@ export const useAuctions = (view) => {
     setLoading(true);
     try {
       const res = await axios.get(AUCTION_URL);
+      console.log(res.data);
       setAuctions(res.data);
     } catch (err) {
       setError('Failed to load auctions');

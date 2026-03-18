@@ -2,21 +2,22 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { AnimatePresence } from 'framer-motion';
 
-// Constants
+
 import { AUCTION_URL } from './constants/urls';
 
-// Hooks
+
 import { useAuth } from './hooks/useAuth';
 import { useAuctions } from './hooks/useAuctions';
 import { useSocket } from './hooks/useSocket';
 
-// Components
+
 import AuthView from './components/auth/AuthView';
 import Dashboard from './components/dashboard/Dashboard';
 import CreateAuctionModal from './components/dashboard/CreateAuctionModal';
 import AuctionDetails from './components/auction/AuctionDetails';
+import PastAuctions from './components/dashboard/PastAuctions';
 
-// Styles
+
 import './index.css';
 
 const App = () => {
@@ -97,6 +98,7 @@ const App = () => {
             onSelectAuction={selectAuction}
             onCreateClick={() => setShowCreateModal(true)}
             onLogout={logout}
+            onPastAuctions={() => setView('past-auctions')}
           />
           <AnimatePresence>
             {showCreateModal && (
@@ -119,6 +121,14 @@ const App = () => {
           onBack={() => setView('dashboard')}
           error={auctionsError}
           setError={setAuctionsError}
+        />
+      )}
+      {view === 'past-auctions' && (
+        <PastAuctions
+          user={user}
+          onBack={() => setView('dashboard')}
+          onSelectAuction={selectAuction}
+          onLogout={logout}
         />
       )}
     </>

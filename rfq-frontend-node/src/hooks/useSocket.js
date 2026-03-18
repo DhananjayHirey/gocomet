@@ -8,6 +8,7 @@ export const useSocket = (user) => {
   useEffect(() => {
     if (user) {
       const s = io(SOCKET_URL);
+      s.emit('join_user_room', user.id);
       setSocket(s);
       return () => s.disconnect();
     }

@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gavel, ArrowLeft, Clock, Zap, Timer, Award, Activity, Loader2, CheckCircle2, AlertCircle, Bell, User } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { Topbar, StatCard, Label } from '../shared/UIComponents';
 import { statusConfig } from '../../constants/status';
 import { BIDDING_URL } from '../../constants/urls';
+import { useCountdown } from '../../hooks/useCountdown';
 
 const AuctionDetails = ({ user, auction, socket, notifications, setNotifications, onBack, error, setError }) => {
   const [bidPrice, setBidPrice] = useState('');
@@ -39,7 +40,15 @@ const AuctionDetails = ({ user, auction, socket, notifications, setNotifications
     };
     socket.on('bid_update', handleUpdate);
     socket.on('auction_extended', handleExtension);
-    return () => { socket.off('bid_update', handleUpdate); socket.off('auction_extended', handleExtension); };
+    socket.on('bid_error', (data) => {
+      setError(data.message);
+      setNotifications(prev => [`❌ ${ data.message }`, ...prev].slice(0, 20));
+    });
+    return () => { 
+      socket.off('bid_update', handleUpdate); 
+      socket.off('auction_extended', handleExtension);
+      socket.off('bid_error');
+    };
   }, [socket, liveAuction.id]);
 
   const placeBid = async (e) => {
@@ -60,6 +69,7 @@ const AuctionDetails = ({ user, auction, socket, notifications, setNotifications
   };
 
   const status = statusConfig[liveAuction.status] || statusConfig.PENDING;
+  const countdown = useCountdown(liveAuction.bid_close_time);
 
   return (
     <div style={{ minHeight: '100vh' }} className="bg-grid">
@@ -90,17 +100,30 @@ const AuctionDetails = ({ user, auction, socket, notifications, setNotifications
             
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, marginBottom: 16 }}>
               <div style={{ background: 'var(--ink-3)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 16px' }}>
-                <Label>Starts at</Label>
-                <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{new Date(liveAuction.bid_start_time).toLocaleString()}</div>
+                <Label>Start time</Label>
+                <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{format(new Date(liveAuction.bid_start_time), 'MMM d, yyyy · HH:mm')}</div>
               </div>
               <div style={{ background: 'var(--ink-3)', border: '1px solid var(--border)', borderRadius: 12, padding: '12px 16px' }}>
-                <Label>Forced Close</Label>
-                <div style={{ fontSize: 14, color: 'var(--text-2)' }}>{new Date(liveAuction.forced_close_time).toLocaleString()}</div>
+                <Label>Forced close (hard limit)</Label>
+                <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{format(new Date(liveAuction.forced_close_time), 'MMM d, yyyy · HH:mm')}</div>
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-              <StatCard icon={Clock} label="Dynamic Close In" value={formatDistanceToNow(new Date(liveAuction.bid_close_time))} accent />
+            {/* Live countdown hero */}
+            <div style={{ background: countdown ? 'rgba(123,97,255,0.06)' : 'var(--red-bg)', border: `1px solid ${countdown ? 'rgba(123,97,255,0.2)' : 'rgba(248,113,113,0.2)'}`, borderRadius: 14, padding: '16px 20px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontSize: 11, fontFamily: 'Syne,sans-serif', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 4 }}>Bid Deadline</div>
+                <div style={{ fontSize: 13, color: 'var(--text-2)' }}>{format(new Date(liveAuction.bid_close_time), 'MMM d, yyyy · HH:mm')}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 11, fontFamily: 'Syne,sans-serif', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)', marginBottom: 4 }}>Time remaining</div>
+                <span className="mono" style={{ fontSize: 28, fontWeight: 600, color: countdown ? 'var(--accent-2)' : 'var(--red)', letterSpacing: '0.02em' }}>
+                  {countdown ?? 'ENDED'}
+                </span>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
               <StatCard icon={Zap} label="Trigger" value={liveAuction.trigger_type.replace(/_/g, ' ')} />
               <StatCard icon={Timer} label="Extension" value={`+${ liveAuction.extension_duration_minutes }m`} />
             </div>
