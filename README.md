@@ -111,3 +111,11 @@ erDiagram
         timestamp created_at
     }
 ```
+
+## Challenges and Solutions
+
+During the development of this British Auction system, two major challenges were encountered and addressed:
+
+1. **Concurrency and Consistency in Bid Placement**: Ensuring that multiple bids could be processed simultaneously without data races or inconsistencies was critical. This was achieved by implementing a Kafka-based message queue system, where bid requests are queued and processed sequentially, preventing race conditions and maintaining data integrity across concurrent operations.
+
+2. **Complex Trigger Logic for Auction Extensions**: The core logic for automatically extending auction times based on bidding activity within the trigger window required careful handling of three types of triggers: (a) any bid placed, (b) any rank change, and (c) lowest bidder change. An important edge case was identified where if the current time is close to the forced close time, extensions could potentially exceed the forced close limit, leading to bid rejection. This ensures the system provides a fair buffer for other suppliers while respecting the absolute deadline. The logic checks if extensions are possible before accepting bids, preventing invalid extensions beyond the forced close time.
